@@ -7,6 +7,8 @@ library(magrittr)
 library(DataEditR)
 library(tseries)
 library(lmtest)
+library(stargazer)
+library(broom)
 ### abrindo dados
 df <- readxl::read_excel("tcc_data.xlsx", sheet = "deflacionar") %>%  as_tibble()
 
@@ -41,8 +43,8 @@ ggplot(prev_filtrado, aes(x= date)) +
   ggtitle("Evolução da receita, despesa e resultado previdenciário")
 
 ###aplicando hpfilter na receita e na despesa
-rec_hp <- hpfilter(prev_filtrado$recprev, freq = 1600) 
-des_hp <- hpfilter(prev_filtrado$desprev, freq = 1600)
+rec_hp <- hpfilter(prev_filtrado$recprev, freq = 14400) 
+des_hp <- hpfilter(prev_filtrado$desprev, freq = 14400)
 prev_filtrado["recprev_hp"] <- rec_hp$trend
 prev_filtrado["desprev_hp"] <- des_hp$trend
 
@@ -75,7 +77,11 @@ reg <- lm(saldoprev ~ aporte + desv_rec + desv_desp, data = prev_filtrado_2)
 
 summary(reg)
 
+estacionariedade <- adf.test(prev_filtrado_2$saldoprev)
 
+stargazer(as.matrix(tidy(estacionariedade)), type = "latex")
 
+stargazer(as.matrix(tidy(reg$coefficients)), type = "latex")
 
+stargazer(as.matrix(tidy(reg)), type = "latex")
 
